@@ -1,3 +1,51 @@
 <resources>
     <string name="app_name">TPContacts</string>
+
+    <!-- Liste des contacts -->
+    <string name="rechercher_contact">Rechercher un contact…</string>
+    <string name="aucun_contact">Aucun contact ne correspond à votre recherche.</string>
+    <string name="photo_contact">Photo du contact</string>
+
+    <!-- Détail du contact -->
+    <string name="retour">Retour</string>
+    <string name="titre_informations">Informations</string>
+    <string name="titre_coordonnees">Coordonnées GPS</string>
+    <string name="nom">Nom</string>
+    <string name="prenom">Prénom</string>
+    <string name="telephone">Téléphone</string>
+    <string name="email">E-mail</string>
+    <string name="latitude">Latitude (-90 à 90)</string>
+    <string name="longitude">Longitude (-180 à 180)</string>
+    <string name="aide_coordonnees">Laissez les deux champs vides si la position du contact est inconnue.</string>
+    <string name="choisir_photo">Choisir une photo</string>
+    <string name="prendre_photo">Prendre une photo</string>
+    <string name="appeler">Appeler</string>
+    <string name="envoyer_email">E-mail</string>
+    <string name="voir_sur_carte">Voir sur la carte</string>
+    <string name="enregistrer">Enregistrer</string>
+    <string name="annuler">Annuler</string>
+
+    <!-- Messages d'erreur et confirmations -->
+    <string name="erreur_nom">Nom obligatoire</string>
+    <string name="erreur_prenom">Prénom obligatoire</string>
+    <string name="erreur_telephone">Téléphone obligatoire</string>
+    <string name="erreur_email">E-mail obligatoire</string>
+    <string name="latitude_non_numerique">Latitude non numérique</string>
+    <string name="latitude_hors_limites">La latitude doit être comprise entre -90 et 90</string>
+    <string name="longitude_non_numerique">Longitude non numérique</string>
+    <string name="longitude_hors_limites">La longitude doit être comprise entre -180 et 180</string>
+    <string name="coordonnees_incompletes">Renseignez la latitude et la longitude, ou laissez les deux champs vides</string>
+    <string name="contact_enregistre">Contact enregistré</string>
+    <string name="contact_introuvable">Contact introuvable</string>
+    <string name="impossible_appel">Impossible d\'effectuer l\'appel</string>
+    <string name="aucune_application_email">Aucune application e-mail trouvée</string>
+    <string name="impossible_camera">Impossible d\'ouvrir l\'appareil photo</string>
+    <string name="photo_non_enregistree">Impossible d\'enregistrer la photo</string>
+    <string name="photo_non_chargee">Photo indisponible</string>
+    <string name="permission_camera_refusee">Permission caméra refusée</string>
+
+    <!-- Carte -->
+    <string name="carte_position">Position enregistrée : %1$.4f, %2$.4f</string>
+    <string name="carte_absente">Aucune coordonnée GPS valide n\'est enregistrée pour ce contact. Ajoutez une latitude et une longitude dans sa fiche pour l\'afficher sur la carte.</string>
+    <string name="carte_indisponible">Carte indisponible : aucune clé API Google Maps n\'est configurée. Renseignez MAPS_API_KEY dans local.properties puis reconstruisez l\'application.</string>
 </resources>

@@ -1,78 +1,51 @@
 package com.example.tpcontacts
 
-import android.content.Intent
-import android.os.Build
 import android.os.Bundle
-import android.widget.ListView
-import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
-import com.example.tpcontacts.model.Contact
+import com.example.tpcontacts.ui.detail.DetailContactFragment
+import com.example.tpcontacts.ui.list.ListeContactsFragment
+import com.example.tpcontacts.ui.map.CarteContactFragment
 
+/**
+ * Unique Activity de l'application : elle héberge tous les fragments dans un
+ * FragmentContainerView. La navigation est dynamique (replace + addToBackStack).
+ */
 class MainActivity : AppCompatActivity() {
-
-    private lateinit var contacts: MutableList<Contact>
-    private lateinit var adapter: ContactAdapter
-    private var selectedPosition: Int = -1
-
-    // Étape 17 : Récupérer le résultat
-    private val detailActivityResultLauncher = registerForActivityResult(
-        ActivityResultContracts.StartActivityForResult()
-    ) { result ->
-        if (result.resultCode == RESULT_OK) {
-            val contactModifie = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-                result.data?.getSerializableExtra("contactModifie", Contact::class.java)
-            } else {
-                @Suppress("DEPRECATION")
-                result.data?.getSerializableExtra("contactModifie") as? Contact
-            }
-
-            if (contactModifie != null && selectedPosition != -1 && selectedPosition < contacts.size) {
-                contacts[selectedPosition] = contactModifie
-            }
-            adapter.notifyDataSetChanged()
-        }
-    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
-        // Étape 7 : Charger les contacts
-        contacts = mutableListOf(
-            Contact(
-                "Dupont",
-                "Claire",
-                "0612345678",
-                "claire@gmail.com",
-                R.drawable.oip
-            ),
-            Contact(
-                "Martin",
-                "Thomas",
-                "0711223344",
-                "thomas@gmail.com",
-                R.drawable.oip2
-            ),
-            Contact(
-                "Bernard",
-                "Sophie",
-                "0655667788",
-                "sophie@gmail.com",
-                R.drawable.oip3
-            )
-        )
-
-        val listView = findViewById<ListView>(R.id.listContacts)
-
-        adapter = ContactAdapter(this, contacts)
-        listView.adapter = adapter
-
-        // Étape 10 : Ouvrir DetailActivity
-        listView.setOnItemClickListener { _, _, position, _ ->
-            selectedPosition = position
-            val intent = Intent(this, DetailActivity::class.java)
-            intent.putExtra("contact", contacts[position])
-            detailActivityResultLauncher.launch(intent)
+        // Au changement de configuration, le FragmentManager restaure déjà les
+        // fragments affichés : on n'ajoute la liste que sur une création réelle.
+        if (savedInstanceState == null) {
+            supportFragmentManager.beginTransaction()
+                .replace(R.id.fragmentContainer, ListeContactsFragment(), TAG_LISTE)
+                .commit()
         }
+    }
+
+    fun openDetail(contactId: String) {
+        if (supportFragmentManager.isStateSaved) return
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, DetailContactFragment.newInstance(contactId))
+            .addToBackStack(TAG_DETAIL)
+            .commit()
+    }
+
+    fun openMap(contactId: String) {
+        if (supportFragmentManager.isStateSaved) return
+
+        supportFragmentManager.beginTransaction()
+            .replace(R.id.fragmentContainer, CarteContactFragment.newInstance(contactId))
+            .addToBackStack(TAG_CARTE)
+            .commit()
+    }
+
+    companion object {
+        private const val TAG_LISTE = "liste_contacts"
+        private const val TAG_DETAIL = "detail_contact"
+        private const val TAG_CARTE = "carte_contact"
     }
 }

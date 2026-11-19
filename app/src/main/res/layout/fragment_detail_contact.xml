@@ -2,6 +2,7 @@
 <ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:fitsSystemWindows="true"
     android:padding="16dp">
 
     <LinearLayout
@@ -9,15 +10,22 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
+        <Button
+            android:id="@+id/btnRetourDetail"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/retour" />
+
         <ImageView
             android:id="@+id/imgPhoto"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
+            android:layout_width="140dp"
+            android:layout_height="140dp"
             android:layout_gravity="center_horizontal"
+            android:layout_marginTop="8dp"
             android:layout_marginBottom="16dp"
-            android:contentDescription="Photo du contact"
+            android:contentDescription="@string/photo_contact"
             android:scaleType="centerCrop"
-            android:src="@drawable/oip" />
+            android:src="@drawable/person1" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -29,24 +37,33 @@
                 android:id="@+id/btnGalerie"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginEnd="4dp"
-                android:text="Choisir Photo" />
+                android:layout_weight="1"
+                android:text="@string/choisir_photo" />
 
             <Button
                 android:id="@+id/btnCamera"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginStart="4dp"
-                android:text="Prendre Photo" />
+                android:layout_weight="1"
+                android:text="@string/prendre_photo" />
         </LinearLayout>
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:text="@string/titre_informations"
+            android:textSize="18sp"
+            android:textStyle="bold" />
 
         <EditText
             android:id="@+id/edtNom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Nom"
+            android:hint="@string/nom"
+            android:importantForAutofill="no"
             android:inputType="textPersonName"
             android:minHeight="48dp" />
 
@@ -54,15 +71,17 @@
             android:id="@+id/edtPrenom"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Prénom"
+            android:hint="@string/prenom"
+            android:importantForAutofill="no"
             android:inputType="textPersonName"
             android:minHeight="48dp" />
 
         <EditText
-            android:id="@+id/edtTel"
+            android:id="@+id/edtTelephone"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Téléphone"
+            android:hint="@string/telephone"
+            android:importantForAutofill="no"
             android:inputType="phone"
             android:minHeight="48dp" />
 
@@ -70,9 +89,50 @@
             android:id="@+id/edtEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Email"
+            android:hint="@string/email"
+            android:importantForAutofill="no"
             android:inputType="textEmailAddress"
             android:minHeight="48dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="4dp"
+            android:text="@string/titre_coordonnees"
+            android:textSize="18sp"
+            android:textStyle="bold" />
+
+        <EditText
+            android:id="@+id/edtLatitude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/latitude"
+            android:importantForAutofill="no"
+            android:inputType="numberDecimal|numberSigned"
+            android:minHeight="48dp" />
+
+        <EditText
+            android:id="@+id/edtLongitude"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="@string/longitude"
+            android:importantForAutofill="no"
+            android:inputType="numberDecimal|numberSigned"
+            android:minHeight="48dp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/aide_coordonnees"
+            android:textSize="12sp" />
+
+        <Button
+            android:id="@+id/btnVoirCarte"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="@string/voir_sur_carte" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -84,41 +144,41 @@
                 android:id="@+id/btnCall"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginEnd="4dp"
-                android:text="Appeler" />
+                android:layout_weight="1"
+                android:text="@string/appeler" />
 
             <Button
                 android:id="@+id/btnMail"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginStart="4dp"
-                android:text="Email" />
+                android:layout_weight="1"
+                android:text="@string/envoyer_email" />
         </LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
             android:orientation="horizontal">
 
             <Button
                 android:id="@+id/btnEnregistrer"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginEnd="4dp"
-                android:text="Enregistrer" />
+                android:layout_weight="1"
+                android:text="@string/enregistrer" />
 
             <Button
                 android:id="@+id/btnAnnuler"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
                 android:layout_marginStart="4dp"
-                android:text="Annuler" />
+                android:layout_weight="1"
+                android:text="@string/annuler" />
         </LinearLayout>
-
     </LinearLayout>
 </ScrollView>
