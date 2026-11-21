@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<title>Compte rendu — TP Android Contacts V3</title>
+<style>
+  @page { size: A4; margin: 18mm 16mm; }
+  * { box-sizing: border-box; }
+  body { font-family: "Segoe UI", Arial, sans-serif; font-size: 10.5pt; line-height: 1.45; color: #1c2430; }
+  h1 { font-size: 22pt; margin: 0 0 4pt; color: #10355e; }
+  h2 { font-size: 14pt; color: #10355e; border-bottom: 2px solid #d6e3f0; padding-bottom: 4pt; margin-top: 22pt; }
+  h3 { font-size: 11.5pt; color: #1b4f83; margin-top: 14pt; }
+  p, li, td, th { font-size: 10pt; }
+  table { border-collapse: collapse; width: 100%; margin: 8pt 0 12pt; }
+  th, td { border: 1px solid #c8d4e0; padding: 5pt 7pt; vertical-align: top; text-align: left; }
+  th { background: #eaf1f8; }
+  code { font-family: Consolas, monospace; font-size: 9pt; background: #f2f5f8; padding: 1pt 3pt; }
+  .cover { text-align: center; padding: 38pt 0 24pt; }
+  .cover .sub { font-size: 13pt; color: #456; letter-spacing: .5pt; }
+  .cover .meta { margin-top: 26pt; font-size: 10.5pt; }
+  .cover .meta div { margin: 5pt 0; }
+  .todo { border: 2px dashed #c98200; background: #fff8e8; padding: 10pt 14pt; margin: 16pt 0; }
+  .todo b { color: #9a5d00; }
+  .diagram { display: flex; justify-content: center; align-items: center; gap: 8pt; margin: 14pt 0; flex-wrap: wrap; }
+  .box { border: 1px solid #7c9dc0; background: #f2f7fc; border-radius: 5pt; padding: 8pt 10pt; text-align: center; min-width: 120pt; }
+  .box b { display: block; color: #10355e; }
+  .arrow { color: #456; font-weight: bold; }
+  .note { background: #eef6ef; border-left: 4px solid #4a8f57; padding: 7pt 10pt; margin: 10pt 0; }
+  .warn { background: #fff6e6; border-left: 4px solid #d18b00; padding: 7pt 10pt; margin: 10pt 0; }
+  .shots { display: grid; grid-template-columns: 1fr 1fr; gap: 12pt; }
+  figure { margin: 0; border: 1px solid #d6dee6; padding: 5pt; break-inside: avoid; }
+  figure img { width: 100%; max-height: 92mm; object-fit: contain; display: block; }
+  figcaption { font-size: 8.5pt; color: #456; margin-top: 4pt; }
+  .small { font-size: 9pt; color: #667; }
+  .pagebreak { break-before: page; }
+  ul { margin: 6pt 0 10pt; }
+</style>
+</head>
+<body>
+
+<div class="cover">
+  <div class="sub">TP ANDROID — DÉVELOPPEMENT MOBILE — KOTLIN</div>
+  <h1>Gestion des contacts — Version 3</h1>
+  <p><strong>COMPTE RENDU</strong><br>Fragments • RecyclerView • Filtrage • Google Maps</p>
+  <div class="meta">
+    <div>Étudiant : <strong>[NOM Prénom]</strong></div>
+    <div>Date : <strong>[date du rendu]</strong></div>
+    <div>Dépôt GitHub : <strong>[URL du dépôt]</strong></div>
+    <div>Groupe / promotion : <strong>[à compléter]</strong></div>
+  </div>
+</div>
+
+<div class="todo">
+  <b>À compléter avant le rendu :</b> les champs entre crochets ci-dessus, l'URL GitHub, la clé Maps (fichier <code>local.properties</code> non versionné) et la capture « carte avec marqueur » (paragraphe 9). Supprimer ce cadre ensuite.
+</div>
+
+<h2>1. Contexte et objectifs</h2>
+<p>
+  La version 3 fait évoluer l'application de gestion de contacts réalisée en V2. Elle conserve toutes les
+  fonctionnalités précédentes et introduit : une architecture à <strong>une seule activité et plusieurs fragments
+  dynamiques</strong>, une <strong>RecyclerView</strong> avec filtrage en temps réel, et l'affichage des
+  coordonnées GPS des contacts sur <strong>Google Maps</strong>. Les compétences travaillées sont la navigation
+  entre fragments, le passage de paramètres, la gestion du cycle de vie, les adapters RecyclerView, le filtrage
+  de données, l'intégration du SDK Maps, les tests et la documentation.
+</p>
+<p>
+  Le projet est développé en Kotlin avec des interfaces XML, AndroidX Fragment et RecyclerView. Le stockage reste
+  en mémoire (collection singleton), ce qui est explicitement autorisé par l'énoncé.
+</p>
+
+<h2>2. Architecture des fragments</h2>
+<p>
+  <code>MainActivity</code> est l'unique activité. Sa mise en page ne contient qu'un
+  <code>FragmentContainerView</code> (<code>activity_main.xml</code>) qui sert de conteneur à tous les écrans.
+  La navigation est réalisée manuellement avec <code>FragmentManager</code> / <code>FragmentTransaction</code>
+  (aucun composant Navigation) :
+</p>
+<ul>
+  <li>au premier lancement uniquement (<code>savedInstanceState == null</code>), la liste est ajoutée par <code>replace()</code> ;</li>
+  <li><code>openDetail(id)</code> et <code>openMap(id)</code> remplacent le fragment courant et appellent <code>addToBackStack()</code> ;</li>
+  <li>le bouton Retour de chaque fragment et le bouton système utilisent <code>popBackStack()</code>.</li>
+</ul>
+
+<div class="diagram">
+  <div class="box"><b>MainActivity</b>FragmentContainerView<br>Un seul écran système</div>
+  <div class="arrow">→</div>
+  <div class="box"><b>ListeContactsFragment</b>Recherche + RecyclerView</div>
+  <div class="arrow">→</div>
+  <div class="box"><b>DetailContactFragment</b>Édition, actions, GPS</div>
+  <div class="arrow">→</div>
+  <div class="box"><b>CarteContactFragment</b>Maps + marqueur</div>
+</div>
+
+<table>
+  <tr><th>Élément</th><th>Rôle principal</th></tr>
+  <tr><td><code>ui/ContactsViewModel.kt</code></td><td>ViewModel partagé au niveau de l'activité ; expose la <code>LiveData</code> des contacts et la méthode <code>update()</code>.</td></tr>
+  <tr><td><code>data/ContactRepository.kt</code></td><td>Collection en mémoire des contacts de démonstration, recherche par identifiant et mise à jour.</td></tr>
+  <tr><td><code>model/Contact.kt</code></td><td>Modèle immuable : identifiant stable, nom, prénom, téléphone, e-mail, photo, latitude et longitude.</td></tr>
+  <tr><td><code>ui/list/*</code></td><td>Liste filtrable et adapter RecyclerView.</td></tr>
+  <tr><td><code>ui/detail/*</code></td><td>Fiche détaillée : édition, validation, photo, appel, e-mail, accès à la carte.</td></tr>
+  <tr><td><code>ui/map/*</code></td><td>Fragment Google Maps : centrage, marqueur, messages d'absence.</td></tr>
+  <tr><td><code>util/*</code></td><td>Fonctions pures testables : filtrage et validation des coordonnées.</td></tr>
+</table>
+
+<div class="note">
+  <strong>Rotation :</strong> lors d'un changement de configuration, le <code>FragmentManager</code> restaure les
+  fragments existants ; <code>MainActivity.onCreate()</code> ne crée donc pas une seconde liste. Le filtre de
+  recherche est sauvegardé dans <code>onSaveInstanceState()</code> et réappliqué après recréation de la vue.
+  Tests effectués : une seule <code>RecyclerView</code> et un seul <code>EditText</code> après rotation, filtre conservé.
+</div>
+
+<h2>3. Choix de communication entre les fragments</h2>
+<p>
+  Deux mécanismes étaient proposés par l'énoncé : le ViewModel partagé ou la Fragment Result API.
+  <strong>Le ViewModel partagé a été retenu</strong> (via <code>activityViewModels()</code>), pour les raisons suivantes :
+</p>
+<ul>
+  <li>les trois fragments vivent dans la même activité et doivent tous lire la même source de données ;</li>
+  <li>la liste doit être actualisée dès que le détail enregistre une modification : l'observation d'une
+      <code>LiveData</code> rend cette mise à jour automatique, sans chaîne de callbacks ;</li>
+  <li>le ViewModel survit aux rotations, ce qui évite de recharger ou de dupliquer les données ;</li>
+  <li>la Fragment Result API reste possible, mais elle obligerait à renvoyer le contact modifié de fragment en
+      fragment et à gérer manuellement le cycle de vie des listeners.</li>
+</ul>
+<p>
+  <strong>Seul l'identifiant du contact transitue dans le Bundle</strong> (<code>putString("contactId", id)</code>).
+  Le détail et la carte récupèrent l'objet complet dans le repository via cet identifiant. Ainsi, aucun objet volumineux
+  n'est sérialisé, et surtout aucun numéro de ligne n'est utilisé : cliquer sur un contact filtrée ne peut pas ouvrir
+  le mauvais contact.
+</p>
+
+<h2>4. RecyclerView et filtrage</h2>
+<h3>RecyclerView</h3>
+<p>
+  La <code>ListView</code> de la V2 est remplacée par une <code>RecyclerView</code> avec un
+  <code>LinearLayoutManager</code>. L'adapter est un <code>ListAdapter</code> avec un <code>DiffUtil.ItemCallback</code>
+  comparant les contacts par identifiant et par contenu. Les identifiants stables
+  (<code>setHasStableIds(true)</code>) et le passage de l'objet <code>Contact</code> au clic garantissent qu'aucune
+  erreur d'indice ne survient après filtrage. Chaque ligne affiche la photo, le nom, le prénom et le téléphone
+  (<code>item_contact.xml</code>).
+</p>
+<h3>Stratégie de filtrage</h3>
+<ul>
+  <li>le champ de recherche est placé au-dessus de la RecyclerView ;</li>
+  <li><code>addTextChangedListener</code> déclenche le filtrage à chaque frappe, sans bouton ;</li>
+  <li><code>ContactFilter.filter()</code> est une fonction pure : mise en minuscules avec <code>Locale.ROOT</code>,
+      recherche sur le nom, le prénom et le téléphone (les espaces du numéro sont ignorés) ;</li>
+  <li>une saisie vide renvoie tous les contacts ; si le résultat est vide, la RecyclerView est masquée et un
+      message explicite est affiché ;</li>
+  <li>la requête est conservée dans le bundle d'état de la vue.</li>
+</ul>
+
+<h2>5. Coordonnées GPS et Google Maps</h2>
+<ul>
+  <li>le modèle <code>Contact</code> possède <code>latitude: Double?</code> et <code>longitude: Double?</code> ;
+      deux contacts de démonstration ont des coordonnées valides, le troisième n'a aucune position ;</li>
+  <li>le fragment Détail affiche et permet de modifier les deux valeurs ; <code>CoordinateValidator</code>
+      contrôle la plage −90..90 / −180..180, accepte la virgule décimale et refuse une paire incomplète ;
+      un message erroné est attaché au champ concerné et l'enregistrement est bloqué ;</li>
+  <li>le bouton « Voir sur la carte » vérifie la validité des coordonnées <em>enregistrées</em>, puis ouvre
+      <code>CarteContactFragment</code> avec l'identifiant du contact ;</li>
+  <li>le <code>SupportMapFragment</code> est ajouté dynamiquement dans un <code>FrameLayout</code> et réutilisé
+      après rotation ; <code>onMapReady()</code> centre la caméra avec
+      <code>CameraUpdateFactory.newLatLngZoom(position, 14f)</code> et pose un marqueur dont le titre est le nom
+      complet du contact ;</li>
+  <li>une position absente ou invalide affiche un message explicite (Toast dans le détail, texte dédié sur l'écran
+      carte) au lieu d'une carte vide.</li>
+</ul>
+<h3>Clé API et sécurité</h3>
+<p>
+  La dépendance <code>play-services-maps</code> est ajoutée via le catalogue de versions Gradle. La clé est lue
+  depuis <code>local.properties</code> (fichier ignoré par Git), puis injectée dans le manifeste par un
+  <code>manifestPlaceholders["MAPS_API_KEY"]</code> et la balise
+  <code>&lt;meta-data android:name="com.google.android.geo.API_KEY" android:value="${MAPS_API_KEY}" /&gt;</code>.
+  Le projet compile donc sans clé ; aucune clé ni identifiant privé n'est versionné. Une vérification
+  <code>git log -S 'AIza'</code> ne renvoie aucun résultat.
+</p>
+<div class="warn">
+  <strong>Remarque :</strong> sans clé, le fragment carte affiche désormais la position enregistrée accompagnée
+  d'un message « Carte indisponible… ». Pour obtenir le rendu effectif des tuiles et du marqueur, il faut
+  renseigner <code>MAPS_API_KEY=...</code> dans <code>local.properties</code>, activer l'API Maps sur un projet
+  Google Cloud et reconstruire l'application. Aucune autorisation de localisation n'est demandée : seules des
+  coordonnées déjà enregistrées sont affichées.
+</div>
+
+<h2>6. Fonctionnalités conservées de la V2</h2>
+<table>
+  <tr><th>Fonctionnalité</th><th>Implémentation</th></tr>
+  <tr><td>Modèle Contact (photo incluse)</td><td>Photo de ressource ou URI ; photo caméra enregistrée dans le cache avec <code>FileProvider</code>.</td></tr>
+  <tr><td>Liste et fiche détaillée</td><td>Liste en RecyclerView, fiche ouverte par identifiant.</td></tr>
+  <tr><td>Modification et enregistrement</td><td><code>viewModel.update()</code> met à jour la <code>LiveData</code> ; retour automatique à la liste actualisée.</td></tr>
+  <tr><td>Appeler</td><td>Intent implicite <code>ACTION_DIAL</code> avec <code>tel:</code>, numéro prérempli.</td></tr>
+  <tr><td>E-mail</td><td>Intent implicite <code>ACTION_SENDTO</code> avec <code>mailto:</code>, adresse préremplie.</td></tr>
+  <tr><td>Galerie et caméra</td><td><code>ActivityResultContracts.GetContent()</code> et <code>TakePicturePreview()</code>, permission caméra demandée à la volée.</td></tr>
+  <tr><td>Annuler</td><td><code>popBackStack()</code> sans écriture : les anciennes valeurs restent inchangées.</td></tr>
+  <tr><td>Champs obligatoires</td><td>Nom, prénom, téléphone et e-mail non vides ; erreurs affichées directement sous les champs.</td></tr>
+</table>
+
+<h2 class="pagebreak">7. Tests réalisés</h2>
+<h3>Tests automatisés</h3>
+<table>
+  <tr><th>Commande</th><th>Résultat</th></tr>
+  <tr><td><code>.\gradlew.bat :app:assembleDebug</code></td><td>BUILD SUCCESSFUL — APK debug généré.</td></tr>
+  <tr><td><code>.\gradlew.bat :app:testDebugUnitTest</code></td><td>24 tests, 0 échec : ContactFilterTest (7), CoordinateValidatorTest (12), ContactTest (4), ExampleUnitTest (1).</td></tr>
+  <tr><td><code>.\gradlew.bat :app:lintDebug</code></td><td>BUILD SUCCESSFUL ; 27 avertissements de style (aucune erreur bloquante).</td></tr>
+</table>
+<h3>Tests manuels sur émulateur (Medium_Phone, API 37)</h3>
+<table>
+  <tr><th>Scénario</th><th>Résultat observé</th></tr>
+  <tr><td>Filtre « mar »</td><td>Seul Martin est affiché.</td></tr>
+  <tr><td>Effacement du filtre</td><td>Les trois contacts réapparaissent.</td></tr>
+  <tr><td>Filtre « zzz »</td><td>Message « Aucun contact ne correspond à votre recherche. »</td></tr>
+  <tr><td>Clic dans la liste filtrée</td><td>La fiche de Martin s'ouvre correctement.</td></tr>
+  <tr><td>Modification du téléphone</td><td>Nouvelle valeur affichée immédiatement dans la liste après Enregistrer.</td></tr>
+  <tr><td>Annuler après modification</td><td>Ancienne valeur conservée.</td></tr>
+  <tr><td>Rotation liste / détail / carte</td><td>Aucun doublon de fragment, filtre conservé, retour stable.</td></tr>
+  <tr><td>Retour depuis la carte</td><td>Retour à la fiche du même contact.</td></tr>
+  <tr><td>Coordonnées absentes</td><td>Toast dans le détail ; aucun fragment carte empilé.</td></tr>
+  <tr><td>Coordonnées 91 / 200</td><td>Refusées avec message d'erreur, enregistrement bloqué.</td></tr>
+  <tr><td>Coordonnées 43.6047 / 1.4442</td><td>Enregistrées ; écran carte ouvert avec la position.</td></tr>
+  <tr><td>Appeler</td><td>Composeur téléphonique ouvert avec le numéro prérempli.</td></tr>
+  <tr><td>E-mail</td><td>L'Intent <code>ACTION_SENDTO</code> est résolu vers Gmail. L'émulateur de test ne possède aucun compte configuré : Gmail demande d'en ajouter un avant d'afficher le composeur.</td></tr>
+  <tr><td>Galerie</td><td>Sélecteur ouvert, photo choisie, validation « Done », retour à la fiche, enregistrement sans crash.</td></tr>
+  <tr><td>Caméra</td><td>Permission accordée, capture, validation « Done », JPEG enregistré dans <code>cache/photos/</code>, enregistrement sans crash.</td></tr>
+  <tr><td>Annulations diverses</td><td>Annuler le sélecteur, refuser la permission ou quitter un Intent : retour sain à l'application, aucun plantage (logcat <code>AndroidRuntime</code> vide).</td></tr>
+</table>
+
+<h2>8. Difficultés rencontrées et solutions</h2>
+<ol>
+  <li><strong>Empilement des fragments à la rotation.</strong> Solution : n'ajouter la liste que si
+      <code>savedInstanceState == null</code> et laisser le <code>FragmentManager</code> restaurer la pile.</li>
+  <li><strong>Filtrage et erreur d'indice.</strong> Solution : transmettre l'identifiant stable du contact via le
+      Bundle et utiliser un <code>ListAdapter</code> avec identifiants stables ; la position de la ligne n'est jamais
+      utilisée comme donnée.</li>
+  <li><strong>Clé API secrète.</strong> Solution : <code>local.properties</code> ignoré par Git et injection par
+      placeholder dans le manifeste ; l'application compile même sans clé et affiche un message explicite.</li>
+  <li><strong>Photo caméra et galerie.</strong> Solution : <code>FileProvider</code> pour partager le fichier JPEG
+      créé dans le cache, et conservation de l'URI dans l'état du fragment pour survivre à une rotation.</li>
+  <li><strong>Validation GPS.</strong> Solution : extracteur pur <code>CoordinateValidator</code>, testé
+      unitairement, avec gestion de la virgule décimale et des paires incomplètes.</li>
+  <li><strong>Composeur e-mail indisponible sur l'émulateur.</strong> L'Intent est bien émis et résolu vers Gmail ;
+      l'absence de compte sur l'émulateur empêche l'affichage du composeur, ce qui est indépendant de l'application.</li>
+</ol>
+
+<h2 class="pagebreak">9. Captures d'écran réelles</h2>
+<p class="small">
+  Captures obtenues sur l'émulateur de test. La capture « carte avec marqueur » devra être ajoutée après configuration
+  d'une clé Google Maps valide (paragraphe 5).
+</p>
+<div class="shots">
+  <figure><img src="captures/01-liste-complete.png" alt="Liste complète"><figcaption>1. Liste complète des contacts (RecyclerView).</figcaption></figure>
+  <figure><img src="captures/02-liste-filtree.png" alt="Liste filtrée"><figcaption>2. Liste filtrée avec « mar ».</figcaption></figure>
+  <figure><img src="captures/03-resultat-vide.png" alt="Résultat vide"><figcaption>3. Message affiché quand aucun contact ne correspond.</figcaption></figure>
+  <figure><img src="captures/04-detail.png" alt="Fiche détaillée"><figcaption>4. Fiche détaillée d'un contact géolocalisé.</figcaption></figure>
+  <figure><img src="captures/05-modification.png" alt="Modification"><figcaption>5. Modification du numéro de téléphone.</figcaption></figure>
+  <figure><img src="captures/06-galerie.png" alt="Galerie"><figcaption>6. Sélecteur d'image de la galerie.</figcaption></figure>
+  <figure><img src="captures/07-camera.png" alt="Caméra"><figcaption>7. Caméra (aperçu noir sur l'émulateur headless, obturateur actif).</figcaption></figure>
+  <figure><img src="captures/08-appel.png" alt="Appel"><figcaption>8. Composeur téléphonique prérempli.</figcaption></figure>
+  <figure><img src="captures/09-email.png" alt="E-mail"><figcaption>9. L'Intent e-mail ouvre Gmail ; l'émulateur sans compte demande d'en ajouter un.</figcaption></figure>
+</div>
+
+<h2>10. Conclusion</h2>
+<p>
+  La version 3 respecte l'ensemble des exigences fonctionnelles et techniques de l'énoncé : architecture à activité
+  unique et fragments dynamiques, navigation avec pile de retour, RecyclerView filtrable, communication par
+  identifiant et ViewModel partagé, coordonnées GPS validées et intégration Google Maps sécurisée. Les tests
+  automatisés et les parcours manuels confirment le bon fonctionnement de l'application, y compris les cas
+  d'annulation et la rotation de l'écran. Les seuls éléments restant à fournir sont externes au code : la clé API
+  (non publiée), la capture du marqueur sur la carte, l'URL du dépôt GitHub et le dépôt dans Google Classroom.
+</p>
+
+<h2>Annexe A — Réponses aux questions de compréhension</h2>
+<ol>
+  <li><strong>Différence Activity / Fragment :</strong> l'Activity est le contexte système principal (fenêtre,
+      cycle de vie de l'application) ; le Fragment est un module d'interface réutilisable qui vit dans une Activity,
+      a son propre cycle de vie et peut être remplacé dynamiquement.</li>
+  <li><strong>FragmentContainerView et addToBackStack() :</strong> le conteneur fournit une vue dédiée et robuste
+      aux fragments (notamment pour les transactions et les transitions) ; <code>addToBackStack()</code> enregistre
+      la transaction pour que le bouton Retour ramène à l'écran précédent.</li>
+  <li><strong>Rôle de l'Adapter et du ViewHolder :</strong> l'Adapter crée les vues de lignes et lie les données du
+      modèle ; le ViewHolder conserve les références aux vues d'une ligne pour éviter les <code>findViewById()</code>
+      répétés lors du défilement.</li>
+  <li><strong>Éviter l'erreur d'indice après filtrage :</strong> ne jamais utiliser la position de la ligne comme
+      identifiant ; transmettre l'identifiant stable du contact et récupérer l'objet dans le modèle.</li>
+  <li><strong>Pourquoi transmettre l'identifiant et non la position :</strong> la position dépend du filtre courant
+      et change dès que la liste est modifiée ; l'identifiant reste unique et stable, ce qui garantit d'ouvrir le bon
+      contact.</li>
+  <li><strong>Protéger la clé Google Maps :</strong> la stocker dans <code>local.properties</code> ignoré par Git,
+      l'injecter via un placeholder de manifeste, ne jamais committer de fichier de secrets et vérifier l'historique
+      Git avant le rendu.</li>
+</ol>
+
+<h2>Annexe B — Checklist de rendu</h2>
+<ul>
+  <li>Dépot GitHub complet et accessible à l'enseignant : <strong>[à vérifier]</strong></li>
+  <li>Aucune clé API ni secret dans le dépôt : <strong>OK</strong></li>
+  <li>Compte rendu PDF (ce document) : <strong>à finaliser puis exporter en PDF</strong></li>
+  <li>Captures réelles : 9 fournies / manque « carte avec marqueur »</li>
+  <li>URL du dépôt déposée dans Google Classroom avant la date limite : <strong>[à faire]</strong></li>
+</ul>
+
+</body>
+</html>
